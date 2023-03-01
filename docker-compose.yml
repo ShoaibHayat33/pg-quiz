@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:13.1
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    networks:
+      - app
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=R8Sh8478zTES
+      - DB_USER=root
+      - DB_PASSWORD=KjEDEx4948Yv
+      - DB_NAME=quizdb
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+
+  quiz:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: quiz-image
+    container_name: quiz-api
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+    networks:
+      - app
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - CORS_ALLOWED_ORIGIN=http://localhost:8000
+      - DB_NAME=quizdb
+      - DB_USER=postgres
+      - DB_PASSWORD=R8Sh8478zTES
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    ports:
+      - "3000:3000"
+
+networks:
+  app:
+    driver: bridge
